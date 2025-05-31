@@ -3,12 +3,14 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '../src/app.module';
 import * as request from 'supertest';
 import { DataSource } from 'typeorm';
+import { UserRoleType } from '../src/entities/user.entity';
 
 export interface TestUser {
   email: string;
   password: string;
   firstName: string;
   lastName: string;
+  role?: UserRoleType;
 }
 
 export interface AuthResponse {

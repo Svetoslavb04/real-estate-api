@@ -9,6 +9,15 @@ import {
 import { Property } from './property.entity';
 import { IsNotEmpty, Length } from 'class-validator';
 
+export const PropertyFeatureCategory = {
+  INTERIOR: 'INTERIOR',
+  EXTERIOR: 'EXTERIOR',
+  COMMUNITY: 'COMMUNITY',
+} as const;
+
+export type PropertyFeatureCategoryType =
+  (typeof PropertyFeatureCategory)[keyof typeof PropertyFeatureCategory];
+
 @Entity('property_features')
 export class PropertyFeature {
   @PrimaryGeneratedColumn('uuid')
@@ -23,11 +32,11 @@ export class PropertyFeature {
   description: string;
 
   @Column({
-    type: 'enum',
-    enum: ['INTERIOR', 'EXTERIOR', 'COMMUNITY'],
-    default: 'INTERIOR',
+    type: 'varchar',
+    length: 20,
+    default: PropertyFeatureCategory.INTERIOR,
   })
-  category: string;
+  category: PropertyFeatureCategoryType;
 
   @Column({ type: 'boolean', default: true })
   isHighlight: boolean;
@@ -38,10 +47,10 @@ export class PropertyFeature {
   @Column({ type: 'varchar', length: 50, nullable: true })
   unit: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'datetime' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'datetime' })
   updatedAt: Date;
 
   @ManyToOne(() => Property, (property) => property.features)

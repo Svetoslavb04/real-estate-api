@@ -9,12 +9,22 @@ import {
 import { User } from './user.entity';
 import { Property } from './property.entity';
 
+export const AppointmentStatus = {
+  PENDING: 'pending',
+  CONFIRMED: 'confirmed',
+  CANCELLED: 'cancelled',
+  COMPLETED: 'completed',
+} as const;
+
+export type AppointmentStatusType =
+  (typeof AppointmentStatus)[keyof typeof AppointmentStatus];
+
 @Entity('appointments')
 export class Appointment {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'timestamp' })
+  @Column({ type: 'datetime' })
   appointmentDate: Date;
 
   @Column({ length: 100 })
@@ -29,13 +39,13 @@ export class Appointment {
   @Column({ length: 500, nullable: true })
   notes: string;
 
-  @Column({ length: 20 })
-  status: string;
+  @Column({ type: 'varchar', length: 20, default: AppointmentStatus.PENDING })
+  status: AppointmentStatusType;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'datetime' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'datetime' })
   updatedAt: Date;
 
   @ManyToOne(() => User, (user) => user.appointments)

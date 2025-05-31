@@ -8,62 +8,54 @@ import {
 } from 'typeorm';
 import { Property } from './property.entity';
 import { Appointment } from './appointment.entity';
-import {
-  IsEmail,
-  IsNotEmpty,
-  Length,
-  IsPhoneNumber,
-  IsEnum,
-} from 'class-validator';
+import { IsEmail, IsNotEmpty, Length, IsEnum } from 'class-validator';
 
-export enum UserRole {
-  ADMIN = 'admin',
-  AGENT = 'agent',
-  CLIENT = 'client',
-}
+export const UserRole = {
+  ADMIN: 'admin',
+  AGENT: 'agent',
+  CLIENT: 'client',
+} as const;
+
+export type UserRoleType = (typeof UserRole)[keyof typeof UserRole];
 
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ length: 50 })
+  @Column({ length: 100 })
   @IsNotEmpty()
-  @Length(2, 50)
+  @Length(2, 100)
   firstName: string;
 
-  @Column({ length: 50 })
+  @Column({ length: 100 })
   @IsNotEmpty()
-  @Length(2, 50)
+  @Length(2, 100)
   lastName: string;
 
-  @Column({ unique: true, length: 100 })
-  @IsEmail()
+  @Column({ length: 100, unique: true })
   @IsNotEmpty()
+  @IsEmail()
   email: string;
 
   @Column({ length: 100 })
   @IsNotEmpty()
   password: string;
 
-  @Column({ length: 20 })
-  @IsPhoneNumber()
-  phoneNumber: string;
+  @Column({ length: 20, nullable: true })
+  phone: string;
 
-  @Column({ type: 'enum', enum: UserRole, default: UserRole.AGENT })
+  @Column({ type: 'varchar', length: 20, default: UserRole.CLIENT })
   @IsEnum(UserRole)
-  role: UserRole;
+  role: UserRoleType;
 
-  @Column({ type: 'text', nullable: true })
-  description: string;
+  @Column({ type: 'boolean', default: false })
+  isVerified: boolean;
 
-  @Column({ default: true })
-  isActive: boolean;
-
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'datetime' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'datetime' })
   updatedAt: Date;
 
   @OneToMany(() => Property, (property) => property.agent)

@@ -34,7 +34,7 @@ export class PropertyImage {
   @Column({ type: 'boolean', default: false })
   isMain: boolean;
 
-  @Column({ type: 'bytea', nullable: true })
+  @Column({ type: 'blob' })
   data: Buffer;
 
   @Column({ length: 50, nullable: true })
@@ -42,10 +42,10 @@ export class PropertyImage {
   @IsString()
   mimeType: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'datetime' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'datetime' })
   updatedAt: Date;
 
   @ManyToOne(() => Property, (property) => property.images)

@@ -13,6 +13,17 @@ import { PropertyFeature } from './property-feature.entity';
 import { PropertyImage } from './property-image.entity';
 import { IsNotEmpty, Min, Length } from 'class-validator';
 
+export const PropertyType = {
+  HOUSE: 'house',
+  APARTMENT: 'apartment',
+  CONDO: 'condo',
+  TOWNHOUSE: 'townhouse',
+  LAND: 'land',
+  COMMERCIAL: 'commercial',
+} as const;
+
+export type PropertyTypeType = (typeof PropertyType)[keyof typeof PropertyType];
+
 @Entity('properties')
 export class Property {
   @PrimaryGeneratedColumn('uuid')
@@ -55,17 +66,17 @@ export class Property {
   @Min(0)
   area: number;
 
-  @Column({ length: 20 })
+  @Column({ type: 'varchar', length: 20 })
   @IsNotEmpty()
-  propertyType: string;
+  propertyType: PropertyTypeType;
 
   @Column({ type: 'boolean', default: true })
   isAvailable: boolean;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'datetime' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'datetime' })
   updatedAt: Date;
 
   @ManyToOne(() => User, (user) => user.properties)

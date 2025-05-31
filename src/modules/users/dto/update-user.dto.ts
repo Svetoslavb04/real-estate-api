@@ -43,7 +43,7 @@ export class UpdateUserDto {
   })
   @IsOptional()
   @IsPhoneNumber()
-  phoneNumber?: string;
+  phone?: string;
 
   @ApiProperty({
     example: 'agent',

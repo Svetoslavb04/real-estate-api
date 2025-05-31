@@ -32,13 +32,13 @@ export class Appointment {
   @Column({ type: 'int', default: 60 })
   durationMinutes: number;
 
-  @Column({ length: 100 })
+  @Column({ length: 100, nullable: true })
   clientName: string;
 
-  @Column({ length: 100 })
+  @Column({ length: 100, nullable: true })
   clientEmail: string;
 
-  @Column({ length: 20 })
+  @Column({ length: 20, nullable: true })
   clientPhone: string;
 
   @Column({ length: 500, nullable: true })

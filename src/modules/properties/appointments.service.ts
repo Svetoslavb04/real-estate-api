@@ -218,14 +218,15 @@ export class AppointmentsService {
         : appointment.appointmentDate,
     });
 
-    return this.appointmentsRepository.save(appointment);
+    await this.appointmentsRepository.save(appointment);
+    return await this.findOne(id);
   }
 
   async remove(
     id: string,
     userId: string,
     userRole: (typeof UserRole)[keyof typeof UserRole],
-  ): Promise<void> {
+  ): Promise<boolean> {
     const appointment = await this.findOne(id);
 
     // Check if user has permission to delete
@@ -240,5 +241,6 @@ export class AppointmentsService {
     }
 
     await this.appointmentsRepository.remove(appointment);
+    return true;
   }
 }

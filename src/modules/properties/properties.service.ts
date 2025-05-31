@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -22,6 +23,13 @@ export class PropertiesService {
     createPropertyDto: CreatePropertyDto,
     agentId: string,
   ): Promise<Property> {
+    const existingProperty = await this.propertiesRepository.findOne({
+      where: { title: createPropertyDto.title },
+    });
+    if (existingProperty) {
+      throw new BadRequestException('Property with this title already exists');
+    }
+
     const property = this.propertiesRepository.create({
       ...createPropertyDto,
       agent: { id: agentId },
@@ -197,7 +205,7 @@ export class PropertiesService {
     id: string,
     userId: string,
     userRole: (typeof UserRole)[keyof typeof UserRole],
-  ): Promise<void> {
+  ): Promise<boolean> {
     const property = await this.findOne(id);
 
     // Check if user has permission to delete
@@ -208,5 +216,6 @@ export class PropertiesService {
     }
 
     await this.propertiesRepository.remove(property);
+    return true;
   }
 }

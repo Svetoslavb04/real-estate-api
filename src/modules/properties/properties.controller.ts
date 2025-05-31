@@ -9,6 +9,7 @@ import {
   Query,
   UseGuards,
   Request,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -64,7 +65,7 @@ export class PropertiesController {
     type: Property,
   })
   @ApiResponse({ status: 404, description: 'Property not found' })
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.propertiesService.findOne(id);
   }
 
@@ -82,7 +83,7 @@ export class PropertiesController {
   })
   @Roles(UserRole.ADMIN, UserRole.AGENT)
   update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() updatePropertyDto: UpdatePropertyDto,
     @Request() req,
   ) {
@@ -103,7 +104,7 @@ export class PropertiesController {
     description: 'Forbidden - Not authorized to delete this property',
   })
   @Roles(UserRole.ADMIN, UserRole.AGENT)
-  remove(@Param('id') id: string, @Request() req) {
+  remove(@Param('id', ParseUUIDPipe) id: string, @Request() req) {
     return this.propertiesService.remove(id, req.user.id, req.user.role);
   }
 }

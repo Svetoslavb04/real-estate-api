@@ -9,6 +9,7 @@ import {
   UseGuards,
   Query,
   Request,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { AppointmentsService } from './appointments.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
@@ -43,16 +44,30 @@ export class AppointmentsController {
     description: 'Forbidden - Not authorized to create appointment',
   })
   @Roles(UserRole.ADMIN, UserRole.AGENT, UserRole.CLIENT)
-  create(
+  async create(
     @Param('propertyId') propertyId: string,
     @Body() createAppointmentDto: CreateAppointmentDto,
     @Request() req,
   ) {
-    return this.appointmentsService.create(
+    if (
+      !createAppointmentDto.clientEmail ||
+      !createAppointmentDto.clientName ||
+      !createAppointmentDto.clientPhone
+    ) {
+      createAppointmentDto.clientEmail = req.user.email;
+      createAppointmentDto.clientName = req.user.firstName;
+      createAppointmentDto.clientPhone = req.user.phone;
+    }
+
+    const appointment = await this.appointmentsService.create(
       propertyId,
       createAppointmentDto,
       req.user.id,
     );
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { agent, ...appointmentWithoutAgent } = appointment;
+    return appointmentWithoutAgent;
   }
 
   @Get()
@@ -65,7 +80,7 @@ export class AppointmentsController {
     description: 'Return all appointments for the property.',
   })
   findAll(
-    @Param('propertyId') propertyId: string,
+    @Param('propertyId', ParseUUIDPipe) propertyId: string,
     @Query() query: QueryAppointmentDto,
   ) {
     return this.appointmentsService.findAll(propertyId, query);
@@ -74,7 +89,7 @@ export class AppointmentsController {
   @Get(':id')
   @ApiOperation({ summary: 'Get a specific appointment' })
   @ApiResponse({ status: 200, description: 'Return the appointment.' })
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.appointmentsService.findOne(id);
   }
 
@@ -90,7 +105,7 @@ export class AppointmentsController {
   })
   @Roles(UserRole.ADMIN, UserRole.AGENT, UserRole.CLIENT)
   update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() updateAppointmentDto: UpdateAppointmentDto,
     @Request() req,
   ) {
@@ -113,7 +128,7 @@ export class AppointmentsController {
     description: 'Forbidden - Not authorized to delete this appointment',
   })
   @Roles(UserRole.ADMIN, UserRole.AGENT, UserRole.CLIENT)
-  remove(@Param('id') id: string, @Request() req) {
+  remove(@Param('id', ParseUUIDPipe) id: string, @Request() req) {
     return this.appointmentsService.remove(id, req.user.id, req.user.role);
   }
 }

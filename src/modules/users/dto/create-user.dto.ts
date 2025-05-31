@@ -37,7 +37,7 @@ export class CreateUserDto {
   })
   @IsOptional()
   @IsPhoneNumber()
-  phoneNumber?: string;
+  phone?: string;
 
   @ApiProperty({
     example: 'agent',

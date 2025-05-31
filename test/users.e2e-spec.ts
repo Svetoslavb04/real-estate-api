@@ -117,7 +117,7 @@ describe('UsersController (e2e)', () => {
 
     it('should return 404 for non-existent user', async () => {
       await request(app.getHttpServer())
-        .get('/users/non-existent-id')
+        .get('/users/470b3195-403e-4f4e-a762-23a6ef1b49c2')
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(404);
     });
@@ -136,7 +136,7 @@ describe('UsersController (e2e)', () => {
       const updateData = {
         firstName: 'Updated',
         lastName: 'Name',
-        phoneNumber: '+359888123456',
+        phone: '+359888123456',
       };
 
       const response = await request(app.getHttpServer())
@@ -148,7 +148,7 @@ describe('UsersController (e2e)', () => {
       expect(response.body).toBeDefined();
       expect(response.body.firstName).toBe(updateData.firstName);
       expect(response.body.lastName).toBe(updateData.lastName);
-      expect(response.body.phoneNumber).toBe(updateData.phoneNumber);
+      expect(response.body.phone).toBe(updateData.phone);
     });
 
     it('should return 401 when not authenticated', async () => {
@@ -168,7 +168,7 @@ describe('UsersController (e2e)', () => {
 
     it('should return 404 for non-existent user', async () => {
       await request(app.getHttpServer())
-        .patch('/users/non-existent-id')
+        .patch('/users/470b3195-403e-4f4e-a762-23a6ef1b49c2')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ firstName: 'Updated' })
         .expect(404);
@@ -185,7 +185,7 @@ describe('UsersController (e2e)', () => {
 
       const invalidData = {
         email: 'invalid-email',
-        phoneNumber: 'invalid-phone',
+        phone: 'invalid-phone',
       };
 
       await request(app.getHttpServer())
@@ -231,7 +231,7 @@ describe('UsersController (e2e)', () => {
 
     it('should return 404 for non-existent user', async () => {
       await request(app.getHttpServer())
-        .delete('/users/non-existent-id')
+        .delete('/users/470b3195-403e-4f4e-a762-23a6ef1b49c2')
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(404);
     });

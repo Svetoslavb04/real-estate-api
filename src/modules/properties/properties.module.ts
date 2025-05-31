@@ -6,18 +6,11 @@ import { PropertiesController } from './properties.controller';
 import { Appointment } from '../../entities/appointment.entity';
 import { AppointmentsService } from './appointments.service';
 import { AppointmentsController } from './appointments.controller';
-import { PropertyImage } from '../../entities/property-image.entity';
-import { PropertyImagesService } from './property-images.service';
-import { PropertyImagesController } from './property-images.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Property, Appointment, PropertyImage])],
-  providers: [PropertiesService, AppointmentsService, PropertyImagesService],
-  controllers: [
-    PropertiesController,
-    AppointmentsController,
-    PropertyImagesController,
-  ],
+  imports: [TypeOrmModule.forFeature([Property, Appointment])],
+  providers: [PropertiesService, AppointmentsService],
+  controllers: [PropertiesController, AppointmentsController],
   exports: [PropertiesService],
 })
 export class PropertiesModule {}

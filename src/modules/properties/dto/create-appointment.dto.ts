@@ -30,17 +30,17 @@ export class CreateAppointmentDto {
   durationMinutes?: number;
 
   @ApiProperty({ example: 'John Doe' })
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   clientName: string;
 
   @ApiProperty({ example: 'john@example.com' })
-  @IsNotEmpty()
+  @IsOptional()
   @IsEmail()
   clientEmail: string;
 
   @ApiProperty({ example: '+359888123456' })
-  @IsNotEmpty()
+  @IsOptional()
   @IsPhoneNumber()
   clientPhone: string;
 

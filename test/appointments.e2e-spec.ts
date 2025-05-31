@@ -417,7 +417,9 @@ describe('AppointmentsController (e2e)', () => {
 
     it('should return 404 for non-existent appointment', async () => {
       await testApp.httpServer
-        .get(`/properties/${testPropertyId}/appointments/non-existent-id`)
+        .get(
+          `/properties/${testPropertyId}/appointments/470b3195-403e-4f4e-a762-23a6ef1b49c2`,
+        )
         .set('Authorization', `Bearer ${clientToken}`)
         .expect(404);
     });

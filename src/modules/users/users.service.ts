@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import { User } from '../../entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { QueryUserDto } from './dto/query-user.dto';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -35,8 +36,75 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
-  async findAll(): Promise<User[]> {
-    return this.usersRepository.find();
+  async findAll(query: QueryUserDto) {
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      firstName,
+      lastName,
+      email,
+      role,
+      isActive,
+      sortBy = 'createdAt',
+      sortOrder = 'DESC',
+    } = query;
+    const skip = (page - 1) * limit;
+
+    const queryBuilder = this.usersRepository
+      .createQueryBuilder('user')
+      .skip(skip)
+      .take(limit);
+
+    if (search) {
+      queryBuilder.where(
+        '(user.firstName LIKE :search OR user.lastName LIKE :search OR user.email LIKE :search)',
+        { search: `%${search}%` },
+      );
+    }
+
+    if (firstName) {
+      queryBuilder.andWhere('user.firstName = :firstName', { firstName });
+    }
+
+    if (lastName) {
+      queryBuilder.andWhere('user.lastName = :lastName', { lastName });
+    }
+
+    if (email) {
+      queryBuilder.andWhere('user.email = :email', { email });
+    }
+
+    if (role) {
+      queryBuilder.andWhere('user.role = :role', { role });
+    }
+
+    if (isActive !== undefined) {
+      queryBuilder.andWhere('user.isActive = :isActive', { isActive });
+    }
+
+    // Add sorting
+    const validSortFields = [
+      'firstName',
+      'lastName',
+      'email',
+      'role',
+      'createdAt',
+    ];
+    const sortField = validSortFields.includes(sortBy) ? sortBy : 'createdAt';
+    queryBuilder.orderBy(`user.${sortField}`, sortOrder);
+
+    const [users, total] = await queryBuilder.getManyAndCount();
+
+    return {
+      data: users,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findOne(id: string): Promise<User> {

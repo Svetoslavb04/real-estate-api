@@ -8,10 +8,12 @@ import {
   Delete,
   UseGuards,
   Request,
+  Query,
 } from '@nestjs/common';
 import { AppointmentsService } from './appointments.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
+import { QueryAppointmentDto } from './dto/query-appointment.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
@@ -47,13 +49,19 @@ export class AppointmentsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all appointments for a property' })
+  @ApiOperation({
+    summary:
+      'Get all appointments for a property with filtering and pagination',
+  })
   @ApiResponse({
     status: 200,
     description: 'Return all appointments for the property.',
   })
-  findAll(@Param('propertyId') propertyId: string) {
-    return this.appointmentsService.findAll(propertyId);
+  findAll(
+    @Param('propertyId') propertyId: string,
+    @Query() query: QueryAppointmentDto,
+  ) {
+    return this.appointmentsService.findAll(propertyId, query);
   }
 
   @Get(':id')
@@ -86,13 +94,19 @@ export class AppointmentsController {
     return this.appointmentsService.remove(id);
   }
 
-  @Get('agent/my-appointments')
-  @ApiOperation({ summary: 'Get all appointments for the current agent' })
+  @Get('agent/appointments')
+  @ApiOperation({
+    summary:
+      'Get all appointments for the current agent with filtering and pagination',
+  })
   @ApiResponse({
     status: 200,
-    description: 'Return all appointments for the current agent.',
+    description: 'Return all appointments for the agent.',
   })
-  findMyAppointments(@Request() req: RequestWithUser) {
-    return this.appointmentsService.findByAgent(req.user.id);
+  findByAgent(
+    @Request() req: RequestWithUser,
+    @Query() query: QueryAppointmentDto,
+  ) {
+    return this.appointmentsService.findByAgent(req.user.id, query);
   }
 }

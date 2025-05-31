@@ -6,11 +6,13 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { QueryUserDto } from './dto/query-user.dto';
 import { User } from '../../entities/user.entity';
 
 @ApiTags('users')
@@ -30,10 +32,10 @@ export class UsersController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all users' })
+  @ApiOperation({ summary: 'Get all users with filtering and pagination' })
   @ApiResponse({ status: 200, description: 'Return all users', type: [User] })
-  findAll() {
-    return this.usersService.findAll();
+  findAll(@Query() query: QueryUserDto) {
+    return this.usersService.findAll(query);
   }
 
   @Get(':id')

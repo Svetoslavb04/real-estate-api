@@ -1,6 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { createTestUser, TestUtils } from './test.utils';
+import { TestApp, TestUtils } from './test.utils';
 import { DataSource } from 'typeorm';
 
 interface AuthResponse {
@@ -11,14 +11,14 @@ interface AuthResponse {
 }
 
 describe('AuthController (e2e)', () => {
+  let testApp: TestApp;
   let app: INestApplication;
   let dataSource: DataSource;
 
   beforeEach(async () => {
-    const { app: testApp, dataSource: testDataSource } =
-      await TestUtils.createTestingApp();
-    app = testApp;
-    dataSource = testDataSource;
+    testApp = await TestUtils.createTestingApp();
+    app = testApp.app;
+    dataSource = testApp.dataSource;
   });
 
   afterEach(async () => {
@@ -56,7 +56,7 @@ describe('AuthController (e2e)', () => {
         lastName: 'Doe',
       };
 
-      await createTestUser(app, userData);
+      await TestUtils.createTestUser(testApp, userData);
 
       await request(app.getHttpServer())
         .post('/auth/register')
@@ -101,7 +101,7 @@ describe('AuthController (e2e)', () => {
         lastName: 'Smith',
       };
 
-      await createTestUser(app, userData);
+      await TestUtils.createTestUser(testApp, userData);
 
       const response = await request(app.getHttpServer())
         .post('/auth/login')
@@ -125,7 +125,7 @@ describe('AuthController (e2e)', () => {
         lastName: 'Johnson',
       };
 
-      await createTestUser(app, userData);
+      await TestUtils.createTestUser(testApp, userData);
 
       await request(app.getHttpServer())
         .post('/auth/login')

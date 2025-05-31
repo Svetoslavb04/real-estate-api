@@ -1,11 +1,12 @@
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { TestUtils } from './test.utils';
+import { TestApp, TestUtils } from './test.utils';
 import { DataSource } from 'typeorm';
 import { UserRole } from '../src/entities/user.entity';
 import { PropertyType } from '../src/entities/property.entity';
 
 describe('PropertiesController (e2e)', () => {
+  let testApp: TestApp;
   let app: INestApplication;
   let dataSource: DataSource;
   let adminToken: string;
@@ -28,13 +29,12 @@ describe('PropertiesController (e2e)', () => {
   };
 
   beforeEach(async () => {
-    const { app: testApp, dataSource: testDataSource } =
-      await TestUtils.createTestingApp();
-    app = testApp;
-    dataSource = testDataSource;
+    testApp = await TestUtils.createTestingApp();
+    app = testApp.app;
+    dataSource = testApp.dataSource;
 
     // Create test users with different roles
-    const adminUser = await TestUtils.createTestUser(app, {
+    const adminUser = await TestUtils.createTestUser(testApp, {
       email: 'admin@example.com',
       password: 'password123',
       firstName: 'Admin',
@@ -43,7 +43,7 @@ describe('PropertiesController (e2e)', () => {
     });
     adminToken = adminUser.token;
 
-    const agentUser = await TestUtils.createTestUser(app, {
+    const agentUser = await TestUtils.createTestUser(testApp, {
       email: 'agent@example.com',
       password: 'password123',
       firstName: 'Agent',
@@ -52,7 +52,7 @@ describe('PropertiesController (e2e)', () => {
     });
     agentToken = agentUser.token;
 
-    const anotherAgentUser = await TestUtils.createTestUser(app, {
+    const anotherAgentUser = await TestUtils.createTestUser(testApp, {
       email: 'another-agent@example.com',
       password: 'password123',
       firstName: 'Another',
@@ -61,7 +61,7 @@ describe('PropertiesController (e2e)', () => {
     });
     anotherAgentToken = anotherAgentUser.token;
 
-    const clientUser = await TestUtils.createTestUser(app, {
+    const clientUser = await TestUtils.createTestUser(testApp, {
       email: 'client@example.com',
       password: 'password123',
       firstName: 'Client',

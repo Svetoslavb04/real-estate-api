@@ -4,6 +4,7 @@ import { AppModule } from '../src/app.module';
 import * as request from 'supertest';
 import { DataSource } from 'typeorm';
 import { UserRoleType } from '../src/entities/user.entity';
+import TestAgent from 'supertest/lib/agent';
 
 export interface TestUser {
   email: string;
@@ -20,11 +21,14 @@ export interface AuthResponse {
   lastName: string;
 }
 
+export interface TestApp {
+  app: INestApplication;
+  dataSource: DataSource;
+  httpServer: TestAgent;
+}
+
 export class TestUtils {
-  static async createTestingApp(): Promise<{
-    app: INestApplication;
-    dataSource: DataSource;
-  }> {
+  static async createTestingApp(): Promise<TestApp> {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -46,7 +50,9 @@ export class TestUtils {
       throw new Error('DataSource not found in the module');
     }
 
-    return { app, dataSource };
+    const httpServer = request(app.getHttpServer());
+
+    return { app, dataSource, httpServer };
   }
 
   static async cleanupDatabase(dataSource: DataSource): Promise<void> {
@@ -62,10 +68,10 @@ export class TestUtils {
   }
 
   static async createTestUser(
-    app: INestApplication,
+    testApp: TestApp,
     userData: TestUser,
   ): Promise<AuthResponse> {
-    const response = await request(app.getHttpServer())
+    const response = await testApp.httpServer
       .post('/auth/register')
       .send({
         email: userData.email,
@@ -80,11 +86,11 @@ export class TestUtils {
   }
 
   static async loginTestUser(
-    app: INestApplication,
+    testApp: TestApp,
     email: string,
     password: string,
   ): Promise<AuthResponse> {
-    const response = await request(app.getHttpServer())
+    const response = await testApp.httpServer
       .post('/auth/login')
       .send({
         email,
@@ -95,36 +101,3 @@ export class TestUtils {
     return response.body as AuthResponse;
   }
 }
-
-export const createTestUser = async (
-  app: INestApplication,
-  userData: TestUser,
-): Promise<AuthResponse> => {
-  const response = await request(app.getHttpServer())
-    .post('/auth/register')
-    .send({
-      email: userData.email,
-      password: userData.password,
-      firstName: userData.firstName,
-      lastName: userData.lastName,
-    })
-    .expect(201);
-
-  return response.body as AuthResponse;
-};
-
-export const loginTestUser = async (
-  app: INestApplication,
-  email: string,
-  password: string,
-): Promise<AuthResponse> => {
-  const response = await request(app.getHttpServer())
-    .post('/auth/login')
-    .send({
-      email,
-      password,
-    })
-    .expect(201);
-
-  return response.body as AuthResponse;
-};

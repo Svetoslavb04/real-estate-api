@@ -1,23 +1,23 @@
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { TestUtils } from './test.utils';
+import { TestApp, TestUtils } from './test.utils';
 import { DataSource } from 'typeorm';
 import { UserRole } from '../src/entities/user.entity';
 
 describe('UsersController (e2e)', () => {
+  let testApp: TestApp;
   let app: INestApplication;
   let dataSource: DataSource;
   let adminToken: string;
   let agentToken: string;
 
   beforeEach(async () => {
-    const { app: testApp, dataSource: testDataSource } =
-      await TestUtils.createTestingApp();
-    app = testApp;
-    dataSource = testDataSource;
+    testApp = await TestUtils.createTestingApp();
+    app = testApp.app;
+    dataSource = testApp.dataSource;
 
     // Create test users with different roles
-    const adminUser = await TestUtils.createTestUser(app, {
+    const adminUser = await TestUtils.createTestUser(testApp, {
       email: 'admin@example.com',
       password: 'password123',
       firstName: 'Admin',
@@ -26,7 +26,7 @@ describe('UsersController (e2e)', () => {
     });
     adminToken = adminUser.token;
 
-    const agentUser = await TestUtils.createTestUser(app, {
+    const agentUser = await TestUtils.createTestUser(testApp, {
       email: 'agent@example.com',
       password: 'password123',
       firstName: 'Agent',

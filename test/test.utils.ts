@@ -11,20 +11,11 @@ export interface TestUser {
   lastName: string;
 }
 
-export interface UserResponse {
-  id: string;
+export interface AuthResponse {
+  token: string;
   email: string;
   firstName: string;
   lastName: string;
-  role: string;
-  isVerified: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface AuthResponse {
-  user: UserResponse;
-  token: string;
 }
 
 export class TestUtils {
@@ -89,7 +80,7 @@ export class TestUtils {
         email,
         password,
       })
-      .expect(200);
+      .expect(201);
 
     return response.body as AuthResponse;
   }
@@ -123,7 +114,7 @@ export const loginTestUser = async (
       email,
       password,
     })
-    .expect(200);
+    .expect(201);
 
   return response.body as AuthResponse;
 };

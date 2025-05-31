@@ -16,9 +16,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async register(
-    createUserDto: CreateUserDto,
-  ): Promise<Omit<User, 'password'>> {
+  async register(createUserDto: CreateUserDto) {
     // Check if this is the first user
     const userCount = await this.usersService.count();
 
@@ -30,8 +28,13 @@ export class AuthService {
     }
 
     const user = await this.usersService.create(createUserDto);
-    const { password, ...result } = user;
-    return result;
+    const payload = { email: user.email, sub: user.id };
+    return {
+      token: this.jwtService.sign(payload),
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    };
   }
 
   async validateUser(
@@ -40,16 +43,14 @@ export class AuthService {
   ): Promise<Omit<User, 'password'> | null> {
     const user = await this.usersService.findByEmail(email);
     if (user && (await bcrypt.compare(password, user.password))) {
-      const { password, ...result } = user;
-      return result;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password, ...userWithoutPassword } = user;
+      return userWithoutPassword;
     }
     return null;
   }
 
-  async login(
-    email: string,
-    password: string,
-  ): Promise<{ access_token: string; user: Omit<User, 'password'> }> {
+  async login(email: string, password: string) {
     const user = await this.validateUser(email, password);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
@@ -57,8 +58,10 @@ export class AuthService {
 
     const payload = { email: user.email, sub: user.id };
     return {
-      access_token: this.jwtService.sign(payload),
-      user,
+      token: this.jwtService.sign(payload),
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
     };
   }
 }

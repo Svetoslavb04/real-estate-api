@@ -7,18 +7,12 @@ import {
   ManyToOne,
 } from 'typeorm';
 import { Property } from './property.entity';
-import { IsNotEmpty, IsString, IsUrl, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional } from 'class-validator';
 
 @Entity('property_images')
 export class PropertyImage {
   @PrimaryGeneratedColumn('uuid')
   id: string;
-
-  @Column({ nullable: true })
-  @IsOptional()
-  @IsString()
-  @IsUrl()
-  url: string;
 
   @Column({ length: 100 })
   @IsNotEmpty()

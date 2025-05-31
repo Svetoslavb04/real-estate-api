@@ -2,7 +2,6 @@ import {
   IsNotEmpty,
   IsString,
   IsOptional,
-  IsUrl,
   IsInt,
   IsBoolean,
   Min,
@@ -11,12 +10,6 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreatePropertyImageDto {
-  @ApiProperty({ description: 'URL of the image' })
-  @IsNotEmpty()
-  @IsString()
-  @IsUrl()
-  url: string;
-
   @ApiProperty({ description: 'Title of the image' })
   @IsNotEmpty()
   @IsString()

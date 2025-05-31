@@ -10,6 +10,9 @@ import {
   UploadedFile,
   UseInterceptors,
   Res,
+  Request,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { PropertyImagesService } from './property-images.service';
 import { CreatePropertyImageDto } from './dto/create-property-image.dto';
@@ -19,41 +22,39 @@ import {
   ApiOperation,
   ApiResponse,
   ApiConsumes,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { FileUploadInterceptor } from './interceptors/file-upload.interceptor';
+import { RolesGuard } from '../auth/guards/roles.guard';
 
 @ApiTags('property-images')
 @Controller('properties/:propertyId/images')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@ApiBearerAuth()
 export class PropertyImagesController {
   constructor(private readonly propertyImagesService: PropertyImagesService) {}
 
-  @Post()
-  @ApiOperation({ summary: 'Create a new property image' })
+  @Post('upload')
+  @ApiOperation({ summary: 'Upload a new property image' })
+  @ApiConsumes('multipart/form-data')
   @ApiResponse({
     status: 201,
-    description: 'The image has been successfully created.',
+    description: 'The image has been successfully uploaded.',
   })
-  create(
-    @Param('propertyId') propertyId: string,
-    @Body() createPropertyImageDto: CreatePropertyImageDto,
-  ) {
-    return this.propertyImagesService.create(
-      propertyId,
-      createPropertyImageDto,
-    );
-  }
-
-  @Post('upload')
-  @ApiOperation({ summary: 'Upload a new property image (binary)' })
-  @ApiConsumes('multipart/form-data')
+  @ApiResponse({
+    status: 403,
+    description:
+      'You do not have permission to manage images for this property.',
+  })
   @UseInterceptors(FileInterceptor('file'), FileUploadInterceptor)
+  @HttpCode(HttpStatus.CREATED)
   uploadImage(
     @Param('propertyId') propertyId: string,
     @UploadedFile() file: Express.Multer.File,
     @Body() createPropertyImageDto: CreatePropertyImageDto,
+    @Request() req,
   ) {
     if (!file) {
       throw new Error('No file uploaded');
@@ -63,6 +64,8 @@ export class PropertyImagesController {
       createPropertyImageDto,
       file.buffer,
       file.mimetype,
+      req.user.id,
+      req.user.role,
     );
   }
 
@@ -92,16 +95,26 @@ export class PropertyImagesController {
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update a property image' })
+  @ApiOperation({ summary: 'Update image URL properties' })
   @ApiResponse({
     status: 200,
-    description: 'The image has been successfully updated.',
+    description: 'The image URL properties have been successfully updated.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'You do not have permission to update this image.',
   })
   update(
     @Param('id') id: string,
     @Body() updatePropertyImageDto: Partial<CreatePropertyImageDto>,
+    @Request() req,
   ) {
-    return this.propertyImagesService.update(id, updatePropertyImageDto);
+    return this.propertyImagesService.updateUrlProperties(
+      id,
+      updatePropertyImageDto,
+      req.user.id,
+      req.user.role,
+    );
   }
 
   @Post(':id/set-as-main')
@@ -110,8 +123,13 @@ export class PropertyImagesController {
     status: 200,
     description: 'The image has been set as the main image.',
   })
-  setAsMain(@Param('id') id: string) {
-    return this.propertyImagesService.setAsMain(id);
+  @ApiResponse({
+    status: 403,
+    description: 'You do not have permission to set this image as main.',
+  })
+  @HttpCode(HttpStatus.OK)
+  setAsMain(@Param('id') id: string, @Request() req) {
+    return this.propertyImagesService.setAsMain(id, req.user.id, req.user.role);
   }
 
   @Delete(':id')
@@ -120,7 +138,11 @@ export class PropertyImagesController {
     status: 200,
     description: 'The image has been successfully deleted.',
   })
-  remove(@Param('id') id: string) {
-    return this.propertyImagesService.remove(id);
+  @ApiResponse({
+    status: 403,
+    description: 'You do not have permission to delete this image.',
+  })
+  remove(@Param('id') id: string, @Request() req) {
+    return this.propertyImagesService.remove(id, req.user.id, req.user.role);
   }
 }

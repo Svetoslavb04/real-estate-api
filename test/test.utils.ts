@@ -96,7 +96,7 @@ export class TestUtils {
         email,
         password,
       })
-      .expect(201);
+      .expect(200);
 
     return response.body as AuthResponse;
   }

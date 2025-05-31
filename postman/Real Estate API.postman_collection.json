@@ -1,0 +1,533 @@
+{
+	"info": {
+		"_postman_id": "c7c83c64-9da0-47b4-9300-889b2effa152",
+		"name": "Real Estate API",
+		"description": "API for managing real estate properties, appointments, and users",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "19801449"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"john@example.com\",\n    \"password\": \"password123\",\n    \"phone\": \"+359888123456\",\n    \"role\": \"client\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"john@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Properties",
+			"item": [
+				{
+					"name": "Create Property",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Luxury Apartment\",\n    \"description\": \"Beautiful apartment in the city center\",\n    \"price\": 250000,\n    \"address\": \"123 Main St\",\n    \"city\": \"New York\",\n    \"bedrooms\": 2,\n    \"bathrooms\": 2,\n    \"area\": 100.5,\n    \"propertyType\": \"apartment\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/properties",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"properties"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Properties",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/properties?page=1&limit=10&city=New York&minPrice=200000&maxPrice=300000&propertyType=apartment",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"properties"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "city",
+									"value": "New York"
+								},
+								{
+									"key": "minPrice",
+									"value": "200000"
+								},
+								{
+									"key": "maxPrice",
+									"value": "300000"
+								},
+								{
+									"key": "propertyType",
+									"value": "apartment"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Property by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/properties/18c2d72d-56c9-47b7-bed3-dd4e1d877313",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"properties",
+								"18c2d72d-56c9-47b7-bed3-dd4e1d877313"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Property",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"price\": 275000,\n    \"description\": \"Updated description\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/properties/18c2d72d-56c9-47b7-bed3-dd4e1d877313",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"properties",
+								"18c2d72d-56c9-47b7-bed3-dd4e1d877313"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Property",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/properties/18c2d72d-56c9-47b7-bed3-dd4e1d877313",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"properties",
+								"18c2d72d-56c9-47b7-bed3-dd4e1d877313"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Appointments",
+			"item": [
+				{
+					"name": "Create Appointment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"appointmentDate\": \"2024-03-20T17:00:00Z\",\n    \"durationMinutes\": 60,\n    \"notes\": \"Interested in viewing the property\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/properties/{{propertyId}}/appointments",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"properties",
+								"{{propertyId}}",
+								"appointments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Property Appointments",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/properties/{{propertyId}}/appointments",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"properties",
+								"{{propertyId}}",
+								"appointments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Appointment",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"appointmentDate\": \"2024-04-21T15:00:00Z\",\n    \"status\": \"confirmed\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/properties/{{propertyId}}/appointments/80e88169-01fe-4000-87cd-5a9db9092884",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"properties",
+								"{{propertyId}}",
+								"appointments",
+								"80e88169-01fe-4000-87cd-5a9db9092884"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Appointment",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/properties/{{propertyId}}/appointments/80e88169-01fe-4000-87cd-5a9db9092884",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"properties",
+								"{{propertyId}}",
+								"appointments",
+								"80e88169-01fe-4000-87cd-5a9db9092884"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Get Users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/users/0b19c401-0959-4e1d-aa4f-f0580df9026c",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								"0b19c401-0959-4e1d-aa4f-f0580df9026c"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update User Profile",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"phone\": \"+359898316960\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/users/0b19c401-0959-4e1d-aa4f-f0580df9026c",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								"0b19c401-0959-4e1d-aa4f-f0580df9026c"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove User",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"phone\": \"+1234567890\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/users/d130b4a7-a725-4c36-985c-07ec7cdfc827",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								"d130b4a7-a725-4c36-985c-07ec7cdfc827"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Properties",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/users/properties",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								"properties"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3001",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "your-jwt-token",
+			"type": "string"
+		},
+		{
+			"key": "propertyId",
+			"value": "property-uuid",
+			"type": "string"
+		},
+		{
+			"key": "imageId",
+			"value": "image-uuid",
+			"type": "string"
+		},
+		{
+			"key": "appointmentId",
+			"value": "appointment-uuid",
+			"type": "string"
+		}
+	]
+}

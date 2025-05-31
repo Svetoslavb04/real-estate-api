@@ -10,11 +10,13 @@ async function bootstrap() {
   app.enableCors();
 
   // Global validation pipe
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    transform: true,
-    forbidNonWhitelisted: true,
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
 
   // Swagger configuration
   const config = new DocumentBuilder()
@@ -31,6 +33,8 @@ async function bootstrap() {
   const port = process.env.PORT || 3000;
   await app.listen(port);
   console.log(`Application is running on: http://localhost:${port}`);
-  console.log(`Swagger documentation is available at: http://localhost:${port}/api`);
+  console.log(
+    `Swagger documentation is available at: http://localhost:${port}/api`,
+  );
 }
 bootstrap();

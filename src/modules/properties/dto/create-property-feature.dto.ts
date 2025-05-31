@@ -7,6 +7,10 @@ import {
   IsNumber,
   Length,
 } from 'class-validator';
+import {
+  PropertyFeatureCategory,
+  PropertyFeatureCategoryType,
+} from '../../../entities/property-feature.entity';
 
 export class CreatePropertyFeatureDto {
   @IsNotEmpty()
@@ -19,8 +23,8 @@ export class CreatePropertyFeatureDto {
   description?: string;
 
   @IsNotEmpty()
-  @IsEnum(['INTERIOR', 'EXTERIOR', 'COMMUNITY'])
-  category: string;
+  @IsEnum(PropertyFeatureCategory)
+  category: PropertyFeatureCategoryType;
 
   @IsOptional()
   @IsBoolean()

@@ -1,10 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Property } from '../../entities/property.entity';
 import { CreatePropertyDto } from './dto/create-property.dto';
 import { UpdatePropertyDto } from './dto/update-property.dto';
 import { QueryPropertyDto } from './dto/query-property.dto';
+import { UserRole } from '../../entities/user.entity';
 
 @Injectable()
 export class PropertiesService {
@@ -172,14 +177,36 @@ export class PropertiesService {
   async update(
     id: string,
     updatePropertyDto: UpdatePropertyDto,
+    userId: string,
+    userRole: (typeof UserRole)[keyof typeof UserRole],
   ): Promise<Property> {
     const property = await this.findOne(id);
+
+    // Check if user has permission to update
+    if (userRole !== UserRole.ADMIN && property.agent.id !== userId) {
+      throw new ForbiddenException(
+        'You do not have permission to update this property',
+      );
+    }
+
     Object.assign(property, updatePropertyDto);
     return this.propertiesRepository.save(property);
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(
+    id: string,
+    userId: string,
+    userRole: (typeof UserRole)[keyof typeof UserRole],
+  ): Promise<void> {
     const property = await this.findOne(id);
+
+    // Check if user has permission to delete
+    if (userRole !== UserRole.ADMIN && property.agent.id !== userId) {
+      throw new ForbiddenException(
+        'You do not have permission to delete this property',
+      );
+    }
+
     await this.propertiesRepository.remove(property);
   }
 }

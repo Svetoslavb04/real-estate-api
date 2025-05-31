@@ -21,22 +21,26 @@ import { CreatePropertyDto } from './dto/create-property.dto';
 import { UpdatePropertyDto } from './dto/update-property.dto';
 import { QueryPropertyDto } from './dto/query-property.dto';
 import { Property } from '../../entities/property.entity';
+import { UserRole } from '../../entities/user.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 
 @ApiTags('properties')
 @Controller('properties')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@ApiBearerAuth()
 export class PropertiesController {
   constructor(private readonly propertiesService: PropertiesService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new property' })
   @ApiResponse({
     status: 201,
     description: 'Property successfully created',
     type: Property,
   })
+  @Roles(UserRole.ADMIN, UserRole.AGENT)
   create(@Body() createPropertyDto: CreatePropertyDto, @Request() req) {
     return this.propertiesService.create(createPropertyDto, req.user.id);
   }
@@ -65,8 +69,6 @@ export class PropertiesController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a property' })
   @ApiResponse({
     status: 200,
@@ -74,20 +76,34 @@ export class PropertiesController {
     type: Property,
   })
   @ApiResponse({ status: 404, description: 'Property not found' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Not authorized to update this property',
+  })
+  @Roles(UserRole.ADMIN, UserRole.AGENT)
   update(
     @Param('id') id: string,
     @Body() updatePropertyDto: UpdatePropertyDto,
+    @Request() req,
   ) {
-    return this.propertiesService.update(id, updatePropertyDto);
+    return this.propertiesService.update(
+      id,
+      updatePropertyDto,
+      req.user.id,
+      req.user.role,
+    );
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete a property' })
   @ApiResponse({ status: 200, description: 'Property successfully deleted' })
   @ApiResponse({ status: 404, description: 'Property not found' })
-  remove(@Param('id') id: string) {
-    return this.propertiesService.remove(id);
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Not authorized to delete this property',
+  })
+  @Roles(UserRole.ADMIN, UserRole.AGENT)
+  remove(@Param('id') id: string, @Request() req) {
+    return this.propertiesService.remove(id, req.user.id, req.user.role);
   }
 }

@@ -18,6 +18,10 @@ export class UsersService {
     private usersRepository: Repository<User>,
   ) {}
 
+  async count(): Promise<number> {
+    return this.usersRepository.count();
+  }
+
   async create(createUserDto: CreateUserDto): Promise<User> {
     const existingUser = await this.usersRepository.findOne({
       where: { email: createUserDto.email },

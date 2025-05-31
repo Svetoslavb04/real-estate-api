@@ -8,7 +8,19 @@ import {
 } from 'typeorm';
 import { Property } from './property.entity';
 import { Appointment } from './appointment.entity';
-import { IsEmail, IsNotEmpty, Length, IsPhoneNumber } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  Length,
+  IsPhoneNumber,
+  IsEnum,
+} from 'class-validator';
+
+export enum UserRole {
+  ADMIN = 'admin',
+  AGENT = 'agent',
+  CLIENT = 'client',
+}
 
 @Entity('users')
 export class User {
@@ -38,8 +50,9 @@ export class User {
   @IsPhoneNumber()
   phoneNumber: string;
 
-  @Column({ default: 'agent' })
-  role: string;
+  @Column({ type: 'enum', enum: UserRole, default: UserRole.AGENT })
+  @IsEnum(UserRole)
+  role: UserRole;
 
   @Column({ type: 'text', nullable: true })
   description: string;

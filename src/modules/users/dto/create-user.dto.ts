@@ -4,8 +4,10 @@ import {
   Length,
   IsPhoneNumber,
   IsOptional,
+  IsEnum,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { UserRole } from '../../../entities/user.entity';
 
 export class CreateUserDto {
   @ApiProperty({ example: 'John', description: 'User first name' })
@@ -32,9 +34,10 @@ export class CreateUserDto {
   @IsPhoneNumber()
   phoneNumber: string;
 
-  @ApiProperty({ example: 'agent', description: 'User role' })
+  @ApiProperty({ example: 'agent', description: 'User role', enum: UserRole })
   @IsOptional()
-  role?: string;
+  @IsEnum(UserRole)
+  role?: UserRole;
 
   @ApiProperty({
     example: 'Experienced real estate agent',

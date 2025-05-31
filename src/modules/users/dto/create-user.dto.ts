@@ -30,9 +30,14 @@ export class CreateUserDto {
   @Length(6, 100)
   password: string;
 
-  @ApiProperty({ example: '+359888123456', description: 'User phone number' })
+  @ApiProperty({
+    example: '+359888123456',
+    description: 'User phone number',
+    required: false,
+  })
+  @IsOptional()
   @IsPhoneNumber()
-  phoneNumber: string;
+  phoneNumber?: string;
 
   @ApiProperty({
     example: 'agent',

@@ -114,4 +114,12 @@ export class QueryPropertyDto {
   @IsString()
   @IsOptional()
   sortOrder?: 'ASC' | 'DESC';
+
+  @IsOptional()
+  @IsString()
+  type?: string;
+
+  @IsOptional()
+  @IsString()
+  location?: string;
 }

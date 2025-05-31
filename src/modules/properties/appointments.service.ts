@@ -4,8 +4,18 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Not } from 'typeorm';
-import { Appointment } from '../../entities/appointment.entity';
+import {
+  Repository,
+  Not,
+  FindOptionsWhere,
+  Between,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+} from 'typeorm';
+import {
+  Appointment,
+  AppointmentStatusType,
+} from '../../entities/appointment.entity';
 import { Property } from '../../entities/property.entity';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
@@ -22,7 +32,6 @@ export class AppointmentsService {
 
   async create(
     propertyId: string,
-    agentId: string,
     createAppointmentDto: CreateAppointmentDto,
   ): Promise<Appointment> {
     const property = await this.propertiesRepository.findOne({
@@ -33,122 +42,69 @@ export class AppointmentsService {
       throw new NotFoundException(`Property with ID ${propertyId} not found`);
     }
 
-    // Check if the appointment time is available
+    // Check for existing appointment at the same time
     const existingAppointment = await this.appointmentsRepository.findOne({
       where: {
         property: { id: propertyId },
-        appointmentDate: createAppointmentDto.appointmentDate,
+        appointmentDate: new Date(createAppointmentDto.appointmentDate),
       },
     });
 
     if (existingAppointment) {
-      throw new BadRequestException('This time slot is already booked');
+      throw new BadRequestException(
+        'An appointment already exists for this property at the specified time',
+      );
     }
 
     const appointment = this.appointmentsRepository.create({
       ...createAppointmentDto,
+      appointmentDate: new Date(createAppointmentDto.appointmentDate),
       property,
-      agent: { id: agentId },
     });
 
     return this.appointmentsRepository.save(appointment);
   }
 
-  async findAll(propertyId: string, query: QueryAppointmentDto) {
-    const {
-      page = 1,
-      limit = 10,
-      search,
-      clientName,
-      clientEmail,
-      clientPhone,
-      status,
-      startDate,
-      endDate,
-      sortBy = 'appointmentDate',
-      sortOrder = 'DESC',
-    } = query;
-    const skip = (page - 1) * limit;
+  async findAll(
+    propertyId: string,
+    query: QueryAppointmentDto,
+  ): Promise<Appointment[]> {
+    const { startDate, endDate, status, clientName, clientEmail, clientPhone } =
+      query;
 
-    const queryBuilder = this.appointmentsRepository
-      .createQueryBuilder('appointment')
-      .leftJoinAndSelect('appointment.property', 'property')
-      .leftJoinAndSelect('appointment.agent', 'agent')
-      .where('property.id = :propertyId', { propertyId })
-      .skip(skip)
-      .take(limit);
+    const where: FindOptionsWhere<Appointment> = {
+      property: { id: propertyId },
+    };
 
-    if (search) {
-      queryBuilder.andWhere(
-        '(appointment.clientName LIKE :search OR appointment.clientEmail LIKE :search)',
-        { search: `%${search}%` },
-      );
-    }
-
-    if (clientName) {
-      queryBuilder.andWhere('appointment.clientName = :clientName', {
-        clientName,
-      });
-    }
-
-    if (clientEmail) {
-      queryBuilder.andWhere('appointment.clientEmail = :clientEmail', {
-        clientEmail,
-      });
-    }
-
-    if (clientPhone) {
-      queryBuilder.andWhere('appointment.clientPhone = :clientPhone', {
-        clientPhone,
-      });
+    if (startDate && endDate) {
+      where.appointmentDate = Between(new Date(startDate), new Date(endDate));
+    } else if (startDate) {
+      where.appointmentDate = MoreThanOrEqual(new Date(startDate));
+    } else if (endDate) {
+      where.appointmentDate = LessThanOrEqual(new Date(endDate));
     }
 
     if (status) {
-      queryBuilder.andWhere('appointment.status = :status', { status });
+      where.status = status as AppointmentStatusType;
     }
 
-    if (startDate && endDate) {
-      queryBuilder.andWhere(
-        'appointment.appointmentDate BETWEEN :startDate AND :endDate',
-        {
-          startDate,
-          endDate,
-        },
-      );
-    } else if (startDate) {
-      queryBuilder.andWhere('appointment.appointmentDate >= :startDate', {
-        startDate,
-      });
-    } else if (endDate) {
-      queryBuilder.andWhere('appointment.appointmentDate <= :endDate', {
-        endDate,
-      });
+    if (clientName) {
+      where.clientName = clientName;
     }
 
-    // Add sorting
-    const validSortFields = [
-      'appointmentDate',
-      'clientName',
-      'clientEmail',
-      'status',
-      'createdAt',
-    ];
-    const sortField = validSortFields.includes(sortBy)
-      ? sortBy
-      : 'appointmentDate';
-    queryBuilder.orderBy(`appointment.${sortField}`, sortOrder);
+    if (clientEmail) {
+      where.clientEmail = clientEmail;
+    }
 
-    const [appointments, total] = await queryBuilder.getManyAndCount();
+    if (clientPhone) {
+      where.clientPhone = clientPhone;
+    }
 
-    return {
-      data: appointments,
-      meta: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
-    };
+    return this.appointmentsRepository.find({
+      where,
+      relations: ['property', 'agent'],
+      order: { appointmentDate: 'ASC' },
+    });
   }
 
   async findOne(id: string): Promise<Appointment> {
@@ -170,124 +126,39 @@ export class AppointmentsService {
   ): Promise<Appointment> {
     const appointment = await this.findOne(id);
 
-    // If updating the appointment date, check for conflicts
     if (updateAppointmentDto.appointmentDate) {
+      // Check for existing appointment at the new time
       const existingAppointment = await this.appointmentsRepository.findOne({
         where: {
           property: { id: appointment.property.id },
-          appointmentDate: updateAppointmentDto.appointmentDate,
-          id: Not(id), // Exclude current appointment
+          appointmentDate: new Date(updateAppointmentDto.appointmentDate),
+          id: Not(id),
         },
       });
 
       if (existingAppointment) {
-        throw new BadRequestException('This time slot is already booked');
+        throw new BadRequestException(
+          'An appointment already exists for this property at the specified time',
+        );
       }
+
+      appointment.appointmentDate = new Date(
+        updateAppointmentDto.appointmentDate,
+      );
     }
 
-    Object.assign(appointment, updateAppointmentDto);
+    Object.assign(appointment, {
+      ...updateAppointmentDto,
+      appointmentDate: updateAppointmentDto.appointmentDate
+        ? new Date(updateAppointmentDto.appointmentDate)
+        : appointment.appointmentDate,
+    });
+
     return this.appointmentsRepository.save(appointment);
   }
 
   async remove(id: string): Promise<void> {
     const appointment = await this.findOne(id);
     await this.appointmentsRepository.remove(appointment);
-  }
-
-  async findByAgent(agentId: string, query: QueryAppointmentDto) {
-    const {
-      page = 1,
-      limit = 10,
-      search,
-      clientName,
-      clientEmail,
-      clientPhone,
-      status,
-      startDate,
-      endDate,
-      sortBy = 'appointmentDate',
-      sortOrder = 'DESC',
-    } = query;
-    const skip = (page - 1) * limit;
-
-    const queryBuilder = this.appointmentsRepository
-      .createQueryBuilder('appointment')
-      .leftJoinAndSelect('appointment.property', 'property')
-      .leftJoinAndSelect('appointment.agent', 'agent')
-      .where('agent.id = :agentId', { agentId })
-      .skip(skip)
-      .take(limit);
-
-    if (search) {
-      queryBuilder.andWhere(
-        '(appointment.clientName LIKE :search OR appointment.clientEmail LIKE :search)',
-        { search: `%${search}%` },
-      );
-    }
-
-    if (clientName) {
-      queryBuilder.andWhere('appointment.clientName = :clientName', {
-        clientName,
-      });
-    }
-
-    if (clientEmail) {
-      queryBuilder.andWhere('appointment.clientEmail = :clientEmail', {
-        clientEmail,
-      });
-    }
-
-    if (clientPhone) {
-      queryBuilder.andWhere('appointment.clientPhone = :clientPhone', {
-        clientPhone,
-      });
-    }
-
-    if (status) {
-      queryBuilder.andWhere('appointment.status = :status', { status });
-    }
-
-    if (startDate && endDate) {
-      queryBuilder.andWhere(
-        'appointment.appointmentDate BETWEEN :startDate AND :endDate',
-        {
-          startDate,
-          endDate,
-        },
-      );
-    } else if (startDate) {
-      queryBuilder.andWhere('appointment.appointmentDate >= :startDate', {
-        startDate,
-      });
-    } else if (endDate) {
-      queryBuilder.andWhere('appointment.appointmentDate <= :endDate', {
-        endDate,
-      });
-    }
-
-    // Add sorting
-    const validSortFields = [
-      'appointmentDate',
-      'clientName',
-      'clientEmail',
-      'status',
-      'createdAt',
-    ];
-    const sortField = validSortFields.includes(sortBy)
-      ? sortBy
-      : 'appointmentDate';
-    queryBuilder.orderBy(`appointment.${sortField}`, sortOrder);
-
-    const [appointments, total] = await queryBuilder.getManyAndCount();
-
-    return {
-      data: appointments,
-      meta: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
-    };
   }
 }

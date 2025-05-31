@@ -1,42 +1,52 @@
 import {
   IsOptional,
   IsString,
+  IsEmail,
+  IsPhoneNumber,
+  IsEnum,
   IsDateString,
-  Length,
-  Matches,
 } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import {
+  AppointmentStatus,
+  AppointmentStatusType,
+} from '../../../entities/appointment.entity';
 
 export class UpdateAppointmentDto {
+  @ApiProperty({ example: '2024-03-20T14:00:00Z', required: false })
   @IsOptional()
   @IsDateString()
-  appointmentDate?: Date;
+  appointmentDate?: string;
 
+  @ApiProperty({ example: 'John Doe', required: false })
   @IsOptional()
   @IsString()
-  @Length(2, 100)
   clientName?: string;
 
+  @ApiProperty({ example: 'john@example.com', required: false })
   @IsOptional()
-  @IsString()
-  @Matches(/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, {
-    message: 'Invalid email format',
-  })
+  @IsEmail()
   clientEmail?: string;
 
+  @ApiProperty({ example: '+359888123456', required: false })
   @IsOptional()
-  @IsString()
-  @Matches(/^\+?[1-9]\d{1,14}$/, {
-    message: 'Invalid phone number format',
-  })
+  @IsPhoneNumber()
   clientPhone?: string;
 
+  @ApiProperty({
+    example: 'Interested in viewing the property',
+    required: false,
+  })
   @IsOptional()
   @IsString()
-  @Length(0, 500)
   notes?: string;
 
+  @ApiProperty({
+    example: 'confirmed',
+    enum: Object.values(AppointmentStatus),
+    required: false,
+  })
   @IsOptional()
-  @IsString()
-  @Length(2, 20)
-  status?: string;
+  @IsEnum(AppointmentStatus)
+  status?: AppointmentStatusType;
 }

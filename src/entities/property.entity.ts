@@ -72,10 +72,14 @@ export class Property {
   @Column({ type: 'boolean', default: true })
   isAvailable: boolean;
 
-  @CreateDateColumn({ type: 'datetime' })
+  @CreateDateColumn({
+    type: process.env.NODE_ENV === 'test' ? 'datetime' : 'timestamp',
+  })
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'datetime' })
+  @UpdateDateColumn({
+    type: process.env.NODE_ENV === 'test' ? 'datetime' : 'timestamp',
+  })
   updatedAt: Date;
 
   @ManyToOne(() => User, (user) => user.properties)

@@ -24,7 +24,9 @@ export class Appointment {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'datetime' })
+  @Column({
+    type: process.env.NODE_ENV === 'test' ? 'datetime' : 'timestamp',
+  })
   appointmentDate: Date;
 
   @Column({ type: 'int', default: 60 })
@@ -45,10 +47,14 @@ export class Appointment {
   @Column({ type: 'varchar', length: 20, default: AppointmentStatus.PENDING })
   status: AppointmentStatusType;
 
-  @CreateDateColumn({ type: 'datetime' })
+  @CreateDateColumn({
+    type: process.env.NODE_ENV === 'test' ? 'datetime' : 'timestamp',
+  })
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'datetime' })
+  @UpdateDateColumn({
+    type: process.env.NODE_ENV === 'test' ? 'datetime' : 'timestamp',
+  })
   updatedAt: Date;
 
   @ManyToOne(() => User, (user) => user.appointments)

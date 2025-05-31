@@ -52,10 +52,14 @@ export class User {
   @Column({ type: 'boolean', default: false })
   isVerified: boolean;
 
-  @CreateDateColumn({ type: 'datetime' })
+  @CreateDateColumn({
+    type: process.env.NODE_ENV === 'test' ? 'datetime' : 'timestamp',
+  })
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'datetime' })
+  @UpdateDateColumn({
+    type: process.env.NODE_ENV === 'test' ? 'datetime' : 'timestamp',
+  })
   updatedAt: Date;
 
   @OneToMany(() => Property, (property) => property.agent)

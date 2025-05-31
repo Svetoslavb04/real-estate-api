@@ -28,7 +28,7 @@ export class PropertyImage {
   @Column({ type: 'boolean', default: false })
   isMain: boolean;
 
-  @Column({ type: 'blob' })
+  @Column({ type: process.env.NODE_ENV === 'test' ? 'blob' : 'bytea' })
   data: Buffer;
 
   @Column({ length: 50, nullable: true })
@@ -36,10 +36,14 @@ export class PropertyImage {
   @IsString()
   mimeType: string;
 
-  @CreateDateColumn({ type: 'datetime' })
+  @CreateDateColumn({
+    type: process.env.NODE_ENV === 'test' ? 'datetime' : 'timestamp',
+  })
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'datetime' })
+  @UpdateDateColumn({
+    type: process.env.NODE_ENV === 'test' ? 'datetime' : 'timestamp',
+  })
   updatedAt: Date;
 
   @ManyToOne(() => Property, (property) => property.images)

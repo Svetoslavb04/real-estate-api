@@ -21,11 +21,11 @@ import { PropertiesService } from './properties.service';
 import { CreatePropertyDto } from './dto/create-property.dto';
 import { UpdatePropertyDto } from './dto/update-property.dto';
 import { QueryPropertyDto } from './dto/query-property.dto';
-import { Property } from '../../entities/property.entity';
 import { UserRole } from '../../entities/user.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { PropertyDto } from './dto/property.dto';
 
 @ApiTags('properties')
 @Controller('properties')
@@ -39,7 +39,7 @@ export class PropertiesController {
   @ApiResponse({
     status: 201,
     description: 'Property successfully created',
-    type: Property,
+    type: PropertyDto,
   })
   @Roles(UserRole.ADMIN, UserRole.AGENT)
   create(@Body() createPropertyDto: CreatePropertyDto, @Request() req) {
@@ -51,7 +51,7 @@ export class PropertiesController {
   @ApiResponse({
     status: 200,
     description: 'Return all properties',
-    type: [Property],
+    type: [PropertyDto],
   })
   findAll(@Query() query: QueryPropertyDto) {
     return this.propertiesService.findAll(query);
@@ -62,7 +62,7 @@ export class PropertiesController {
   @ApiResponse({
     status: 200,
     description: 'Return the property',
-    type: Property,
+    type: PropertyDto,
   })
   @ApiResponse({ status: 404, description: 'Property not found' })
   findOne(@Param('id', ParseUUIDPipe) id: string) {
@@ -74,7 +74,7 @@ export class PropertiesController {
   @ApiResponse({
     status: 200,
     description: 'Property successfully updated',
-    type: Property,
+    type: PropertyDto,
   })
   @ApiResponse({ status: 404, description: 'Property not found' })
   @ApiResponse({

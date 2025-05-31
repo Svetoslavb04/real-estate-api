@@ -25,6 +25,7 @@ import {
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../../entities/user.entity';
+import { AppointmentDto } from './dto/appointment.dto';
 
 @ApiTags('appointments')
 @Controller('properties/:propertyId/appointments')
@@ -42,6 +43,7 @@ export class AppointmentsController {
   @ApiResponse({
     status: 403,
     description: 'Forbidden - Not authorized to create appointment',
+    type: AppointmentDto,
   })
   @Roles(UserRole.ADMIN, UserRole.AGENT, UserRole.CLIENT)
   async create(
@@ -78,6 +80,7 @@ export class AppointmentsController {
   @ApiResponse({
     status: 200,
     description: 'Return all appointments for the property.',
+    type: [AppointmentDto],
   })
   findAll(
     @Param('propertyId', ParseUUIDPipe) propertyId: string,
@@ -88,7 +91,11 @@ export class AppointmentsController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a specific appointment' })
-  @ApiResponse({ status: 200, description: 'Return the appointment.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return the appointment.',
+    type: AppointmentDto,
+  })
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.appointmentsService.findOne(id);
   }
@@ -98,6 +105,7 @@ export class AppointmentsController {
   @ApiResponse({
     status: 200,
     description: 'The appointment has been successfully updated.',
+    type: AppointmentDto,
   })
   @ApiResponse({
     status: 403,

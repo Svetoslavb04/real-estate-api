@@ -18,11 +18,11 @@ import {
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { QueryUserDto } from './dto/query-user.dto';
-import { User } from '../../entities/user.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../../entities/user.entity';
+import { UserDto } from './dto/user.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -33,14 +33,18 @@ export class UsersController {
 
   @Get()
   @ApiOperation({ summary: 'Get all users with filtering and pagination' })
-  @ApiResponse({ status: 200, description: 'Return all users', type: [User] })
+  @ApiResponse({
+    status: 200,
+    description: 'Return all users',
+    type: [UserDto],
+  })
   findAll(@Query() query: QueryUserDto) {
     return this.usersService.findAll(query);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a user by id' })
-  @ApiResponse({ status: 200, description: 'Return the user', type: User })
+  @ApiResponse({ status: 200, description: 'Return the user', type: UserDto })
   @ApiResponse({ status: 404, description: 'User not found' })
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
     const user = await this.usersService.findOne(id);
@@ -55,7 +59,7 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: 'User successfully updated',
-    type: User,
+    type: UserDto,
   })
   @ApiResponse({ status: 404, description: 'User not found' })
   async update(

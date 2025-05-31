@@ -10,6 +10,8 @@ export const validationSchema = Joi.object({
   DB_USERNAME: Joi.string().default('postgres'),
   DB_PASSWORD: Joi.string().default('postgres'),
   DB_DATABASE: Joi.string().default('real_estate_db'),
-  JWT_SECRET: Joi.string().required(),
+  JWT_SECRET: Joi.string().default(
+    'your-super-secret-key-change-in-production',
+  ),
   JWT_EXPIRATION: Joi.string().default('1d'),
 });

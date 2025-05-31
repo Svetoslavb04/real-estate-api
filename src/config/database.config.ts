@@ -1,15 +1,28 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { User } from '../entities/user.entity';
-import { Property } from '../entities/property.entity';
-import { Appointment } from '../entities/appointment.entity';
-import { PropertyFeature } from '../entities/property-feature.entity';
-import { PropertyImage } from '../entities/property-image.entity';
 import { ConfigService } from '@nestjs/config';
 import { DatabaseConfig } from './configuration.interface';
+
+const getTestDatabaseConfig = (): TypeOrmModuleOptions => ({
+  type: 'better-sqlite3',
+  database: ':memory:',
+  dropSchema: true,
+  autoLoadEntities: true,
+  synchronize: true,
+  logging: false,
+});
 
 export const getDatabaseConfig = (
   configService: ConfigService,
 ): TypeOrmModuleOptions => {
+  const environment = configService.get<string>(
+    'app.environment',
+    'development',
+  );
+
+  if (environment === 'test') {
+    return getTestDatabaseConfig();
+  }
+
   const dbConfig = configService.get<DatabaseConfig>('database', {
     host: 'localhost',
     port: 5432,
@@ -17,10 +30,6 @@ export const getDatabaseConfig = (
     password: 'postgres',
     database: 'real_estate_db',
   });
-  const environment = configService.get<string>(
-    'app.environment',
-    'development',
-  );
 
   return {
     type: 'postgres',
@@ -29,7 +38,7 @@ export const getDatabaseConfig = (
     username: dbConfig.username,
     password: dbConfig.password,
     database: dbConfig.database,
-    entities: [User, Property, Appointment, PropertyFeature, PropertyImage],
+    autoLoadEntities: true,
     synchronize: environment !== 'production',
     logging: environment === 'development',
   };

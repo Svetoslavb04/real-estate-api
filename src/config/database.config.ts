@@ -2,6 +2,8 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { User } from '../entities/user.entity';
 import { Property } from '../entities/property.entity';
 import { Appointment } from '../entities/appointment.entity';
+import { PropertyFeature } from '../entities/property-feature.entity';
+import { PropertyImage } from '../entities/property-image.entity';
 import { ConfigService } from '@nestjs/config';
 import { DatabaseConfig } from './configuration.interface';
 
@@ -27,7 +29,7 @@ export const getDatabaseConfig = (
     username: dbConfig.username,
     password: dbConfig.password,
     database: dbConfig.database,
-    entities: [User, Property, Appointment],
+    entities: [User, Property, Appointment, PropertyFeature, PropertyImage],
     synchronize: environment !== 'production',
     logging: environment === 'development',
   };

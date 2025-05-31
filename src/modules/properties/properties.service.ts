@@ -159,7 +159,7 @@ export class PropertiesService {
   async findOne(id: string): Promise<Property> {
     const property = await this.propertiesRepository.findOne({
       where: { id },
-      relations: ['agent', 'features'],
+      relations: ['agent'],
     });
 
     if (!property) {

@@ -9,7 +9,6 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 import { Appointment } from './appointment.entity';
-import { PropertyFeature } from './property-feature.entity';
 import { PropertyImage } from './property-image.entity';
 import { IsNotEmpty, Min, Length } from 'class-validator';
 
@@ -84,9 +83,6 @@ export class Property {
 
   @OneToMany(() => Appointment, (appointment) => appointment.property)
   appointments: Appointment[];
-
-  @OneToMany(() => PropertyFeature, (feature) => feature.property)
-  features: PropertyFeature[];
 
   @OneToMany(() => PropertyImage, (image) => image.property)
   images: PropertyImage[];

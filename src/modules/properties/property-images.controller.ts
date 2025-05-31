@@ -10,7 +10,6 @@ import {
   UploadedFile,
   UseInterceptors,
   Res,
-  UseFilters,
 } from '@nestjs/common';
 import { PropertyImagesService } from './property-images.service';
 import { CreatePropertyImageDto } from './dto/create-property-image.dto';
@@ -50,8 +49,7 @@ export class PropertyImagesController {
   @Post('upload')
   @ApiOperation({ summary: 'Upload a new property image (binary)' })
   @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FileInterceptor('file'))
-  @UseFilters(FileUploadInterceptor)
+  @UseInterceptors(FileInterceptor('file'), FileUploadInterceptor)
   uploadImage(
     @Param('propertyId') propertyId: string,
     @UploadedFile() file: Express.Multer.File,

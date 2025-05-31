@@ -49,9 +49,6 @@ export class User {
   @IsEnum(UserRole)
   role: UserRoleType;
 
-  @Column({ type: 'boolean', default: false })
-  isVerified: boolean;
-
   @CreateDateColumn({
     type: process.env.NODE_ENV === 'test' ? 'datetime' : 'timestamp',
   })

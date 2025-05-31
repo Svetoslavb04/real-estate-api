@@ -9,7 +9,6 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 import { Appointment } from './appointment.entity';
-import { PropertyImage } from './property-image.entity';
 import { IsNotEmpty, Min, Length } from 'class-validator';
 
 export const PropertyType = {
@@ -28,7 +27,7 @@ export class Property {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ length: 100 })
+  @Column({ length: 100, unique: true })
   @IsNotEmpty()
   @Length(5, 100)
   title: string;
@@ -87,7 +86,4 @@ export class Property {
 
   @OneToMany(() => Appointment, (appointment) => appointment.property)
   appointments: Appointment[];
-
-  @OneToMany(() => PropertyImage, (image) => image.property)
-  images: PropertyImage[];
 }

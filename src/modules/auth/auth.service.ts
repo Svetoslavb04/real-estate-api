@@ -2,6 +2,7 @@ import {
   Injectable,
   UnauthorizedException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
@@ -25,6 +26,14 @@ export class AuthService {
       createUserDto.role = UserRole.ADMIN;
     } else if (createUserDto.role === UserRole.ADMIN) {
       throw new ForbiddenException('Cannot register as admin');
+    }
+
+    // Check if email already exists
+    const existingUser = await this.usersService.findByEmail(
+      createUserDto.email,
+    );
+    if (existingUser) {
+      throw new BadRequestException('Email already exists');
     }
 
     const user = await this.usersService.create(createUserDto);
@@ -51,6 +60,10 @@ export class AuthService {
   }
 
   async login(email: string, password: string) {
+    if (!email || !password) {
+      throw new BadRequestException('Email and password are required');
+    }
+
     const user = await this.validateUser(email, password);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');

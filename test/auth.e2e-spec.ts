@@ -1,8 +1,7 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { AppModule } from '../src/app.module';
-import { createTestUser } from './test.utils';
+import { createTestUser, TestUtils } from './test.utils';
+import { DataSource } from 'typeorm';
 
 interface AuthResponse {
   token: string;
@@ -13,17 +12,17 @@ interface AuthResponse {
 
 describe('AuthController (e2e)', () => {
   let app: INestApplication;
+  let dataSource: DataSource;
 
   beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    await app.init();
+    const { app: testApp, dataSource: testDataSource } =
+      await TestUtils.createTestingApp();
+    app = testApp;
+    dataSource = testDataSource;
   });
 
   afterEach(async () => {
+    await TestUtils.cleanupDatabase(dataSource);
     await app.close();
   });
 
@@ -62,14 +61,41 @@ describe('AuthController (e2e)', () => {
       await request(app.getHttpServer())
         .post('/auth/register')
         .send(userData)
-        .expect(409);
+        .expect(400);
+    });
+
+    it('should not register with invalid email', async () => {
+      const userData = {
+        email: 'invalid-email',
+        password: 'password123',
+        firstName: 'John',
+        lastName: 'Doe',
+      };
+
+      await request(app.getHttpServer())
+        .post('/auth/register')
+        .send(userData)
+        .expect(400);
+    });
+
+    it('should not register with missing required fields', async () => {
+      const userData = {
+        email: 'test3@example.com',
+        password: 'password123',
+        // Missing firstName and lastName
+      };
+
+      await request(app.getHttpServer())
+        .post('/auth/register')
+        .send(userData)
+        .expect(400);
     });
   });
 
   describe('POST /auth/login', () => {
     it('should login with valid credentials', async () => {
       const userData = {
-        email: 'test3@example.com',
+        email: 'test5@example.com',
         password: 'password123',
         firstName: 'Bob',
         lastName: 'Smith',
@@ -83,7 +109,7 @@ describe('AuthController (e2e)', () => {
           email: userData.email,
           password: userData.password,
         })
-        .expect(201);
+        .expect(200);
 
       const authResponse = response.body as AuthResponse;
       expect(authResponse).toBeDefined();
@@ -93,7 +119,7 @@ describe('AuthController (e2e)', () => {
 
     it('should not login with invalid credentials', async () => {
       const userData = {
-        email: 'test4@example.com',
+        email: 'test6@example.com',
         password: 'password123',
         firstName: 'Alice',
         lastName: 'Johnson',
@@ -108,6 +134,26 @@ describe('AuthController (e2e)', () => {
           password: 'wrongpassword',
         })
         .expect(401);
+    });
+
+    it('should not login with non-existent email', async () => {
+      await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          email: 'nonexistent@example.com',
+          password: 'password123',
+        })
+        .expect(401);
+    });
+
+    it('should not login with missing fields', async () => {
+      await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          email: 'test7@example.com',
+          // Missing password
+        })
+        .expect(400);
     });
   });
 });

@@ -8,17 +8,27 @@ import {
   Delete,
   UseGuards,
   Query,
+  Request,
 } from '@nestjs/common';
 import { AppointmentsService } from './appointments.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { QueryAppointmentDto } from './dto/query-appointment.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { UserRole } from '../../entities/user.entity';
 
 @ApiTags('appointments')
 @Controller('properties/:propertyId/appointments')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@ApiBearerAuth()
 export class AppointmentsController {
   constructor(private readonly appointmentsService: AppointmentsService) {}
 
@@ -28,11 +38,21 @@ export class AppointmentsController {
     status: 201,
     description: 'The appointment has been successfully created.',
   })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Not authorized to create appointment',
+  })
+  @Roles(UserRole.ADMIN, UserRole.AGENT, UserRole.CLIENT)
   create(
     @Param('propertyId') propertyId: string,
     @Body() createAppointmentDto: CreateAppointmentDto,
+    @Request() req,
   ) {
-    return this.appointmentsService.create(propertyId, createAppointmentDto);
+    return this.appointmentsService.create(
+      propertyId,
+      createAppointmentDto,
+      req.user.id,
+    );
   }
 
   @Get()
@@ -64,11 +84,22 @@ export class AppointmentsController {
     status: 200,
     description: 'The appointment has been successfully updated.',
   })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Not authorized to update this appointment',
+  })
+  @Roles(UserRole.ADMIN, UserRole.AGENT, UserRole.CLIENT)
   update(
     @Param('id') id: string,
     @Body() updateAppointmentDto: UpdateAppointmentDto,
+    @Request() req,
   ) {
-    return this.appointmentsService.update(id, updateAppointmentDto);
+    return this.appointmentsService.update(
+      id,
+      updateAppointmentDto,
+      req.user.id,
+      req.user.role,
+    );
   }
 
   @Delete(':id')
@@ -77,7 +108,12 @@ export class AppointmentsController {
     status: 200,
     description: 'The appointment has been successfully deleted.',
   })
-  remove(@Param('id') id: string) {
-    return this.appointmentsService.remove(id);
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Not authorized to delete this appointment',
+  })
+  @Roles(UserRole.ADMIN, UserRole.AGENT, UserRole.CLIENT)
+  remove(@Param('id') id: string, @Request() req) {
+    return this.appointmentsService.remove(id, req.user.id, req.user.role);
   }
 }

@@ -6,6 +6,9 @@ import {
   IsOptional,
   IsEnum,
   IsDateString,
+  IsNumber,
+  Min,
+  Max,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import {
@@ -18,6 +21,13 @@ export class CreateAppointmentDto {
   @IsNotEmpty()
   @IsDateString()
   appointmentDate: string;
+
+  @ApiProperty({ example: 60, description: 'Duration in minutes', default: 60 })
+  @IsNumber()
+  @Min(15)
+  @Max(240)
+  @IsOptional()
+  durationMinutes?: number;
 
   @ApiProperty({ example: 'John Doe' })
   @IsNotEmpty()

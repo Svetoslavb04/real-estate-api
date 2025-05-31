@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
@@ -20,6 +21,7 @@ import { Property } from '../../entities/property.entity';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { QueryAppointmentDto } from './dto/query-appointment.dto';
+import { UserRole } from '../../entities/user.entity';
 
 @Injectable()
 export class AppointmentsService {
@@ -33,33 +35,56 @@ export class AppointmentsService {
   async create(
     propertyId: string,
     createAppointmentDto: CreateAppointmentDto,
+    userId: string,
   ): Promise<Appointment> {
     const property = await this.propertiesRepository.findOne({
       where: { id: propertyId },
+      relations: ['agent'],
     });
 
     if (!property) {
       throw new NotFoundException(`Property with ID ${propertyId} not found`);
     }
 
-    // Check for existing appointment at the same time
-    const existingAppointment = await this.appointmentsRepository.findOne({
+    const appointmentDate = new Date(createAppointmentDto.appointmentDate);
+    const durationMinutes = createAppointmentDto.durationMinutes || 60;
+    const endTime = new Date(
+      appointmentDate.getTime() + durationMinutes * 60000,
+    );
+
+    // Check for existing appointments that overlap
+    const existingAppointments = await this.appointmentsRepository.find({
       where: {
         property: { id: propertyId },
-        appointmentDate: new Date(createAppointmentDto.appointmentDate),
       },
+      relations: ['property'],
     });
 
-    if (existingAppointment) {
-      throw new BadRequestException(
-        'An appointment already exists for this property at the specified time',
+    for (const existingAppointment of existingAppointments) {
+      const existingStart = existingAppointment.appointmentDate;
+      const existingEnd = new Date(
+        existingStart.getTime() +
+          (existingAppointment.durationMinutes || 60) * 60000,
       );
+
+      // Check if the new appointment overlaps with any existing one
+      if (
+        (appointmentDate >= existingStart && appointmentDate < existingEnd) || // New appointment starts during existing
+        (endTime > existingStart && endTime <= existingEnd) || // New appointment ends during existing
+        (appointmentDate <= existingStart && endTime >= existingEnd) // New appointment spans over existing
+      ) {
+        throw new BadRequestException(
+          'An appointment already exists for this property during the specified time period',
+        );
+      }
     }
 
     const appointment = this.appointmentsRepository.create({
       ...createAppointmentDto,
-      appointmentDate: new Date(createAppointmentDto.appointmentDate),
+      appointmentDate,
+      durationMinutes,
       property,
+      agent: { id: userId },
     });
 
     return this.appointmentsRepository.save(appointment);
@@ -102,7 +127,7 @@ export class AppointmentsService {
 
     return this.appointmentsRepository.find({
       where,
-      relations: ['property', 'agent'],
+      relations: ['property', 'agent', 'property.agent'],
       order: { appointmentDate: 'ASC' },
     });
   }
@@ -110,7 +135,7 @@ export class AppointmentsService {
   async findOne(id: string): Promise<Appointment> {
     const appointment = await this.appointmentsRepository.findOne({
       where: { id },
-      relations: ['property', 'agent'],
+      relations: ['property', 'agent', 'property.agent'],
     });
 
     if (!appointment) {
@@ -123,28 +148,67 @@ export class AppointmentsService {
   async update(
     id: string,
     updateAppointmentDto: UpdateAppointmentDto,
+    userId: string,
+    userRole: (typeof UserRole)[keyof typeof UserRole],
   ): Promise<Appointment> {
     const appointment = await this.findOne(id);
 
-    if (updateAppointmentDto.appointmentDate) {
-      // Check for existing appointment at the new time
-      const existingAppointment = await this.appointmentsRepository.findOne({
+    // Check if user has permission to update
+    if (
+      userRole !== UserRole.ADMIN &&
+      appointment.agent.id !== userId &&
+      appointment.property.agent.id !== userId
+    ) {
+      throw new ForbiddenException(
+        'You do not have permission to update this appointment',
+      );
+    }
+
+    if (
+      updateAppointmentDto.appointmentDate ||
+      updateAppointmentDto.durationMinutes
+    ) {
+      const appointmentDate = updateAppointmentDto.appointmentDate
+        ? new Date(updateAppointmentDto.appointmentDate)
+        : appointment.appointmentDate;
+      const durationMinutes =
+        updateAppointmentDto.durationMinutes ||
+        appointment.durationMinutes ||
+        60;
+      const endTime = new Date(
+        appointmentDate.getTime() + durationMinutes * 60000,
+      );
+
+      // Check for existing appointments that overlap
+      const existingAppointments = await this.appointmentsRepository.find({
         where: {
           property: { id: appointment.property.id },
-          appointmentDate: new Date(updateAppointmentDto.appointmentDate),
-          id: Not(id),
+          id: Not(id), // Exclude current appointment
         },
+        relations: ['property'],
       });
 
-      if (existingAppointment) {
-        throw new BadRequestException(
-          'An appointment already exists for this property at the specified time',
+      for (const existingAppointment of existingAppointments) {
+        const existingStart = existingAppointment.appointmentDate;
+        const existingEnd = new Date(
+          existingStart.getTime() +
+            (existingAppointment.durationMinutes || 60) * 60000,
         );
+
+        // Check if the updated appointment overlaps with any existing one
+        if (
+          (appointmentDate >= existingStart && appointmentDate < existingEnd) || // Updated appointment starts during existing
+          (endTime > existingStart && endTime <= existingEnd) || // Updated appointment ends during existing
+          (appointmentDate <= existingStart && endTime >= existingEnd) // Updated appointment spans over existing
+        ) {
+          throw new BadRequestException(
+            'An appointment already exists for this property during the specified time period',
+          );
+        }
       }
 
-      appointment.appointmentDate = new Date(
-        updateAppointmentDto.appointmentDate,
-      );
+      appointment.appointmentDate = appointmentDate;
+      appointment.durationMinutes = durationMinutes;
     }
 
     Object.assign(appointment, {
@@ -157,8 +221,24 @@ export class AppointmentsService {
     return this.appointmentsRepository.save(appointment);
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(
+    id: string,
+    userId: string,
+    userRole: (typeof UserRole)[keyof typeof UserRole],
+  ): Promise<void> {
     const appointment = await this.findOne(id);
+
+    // Check if user has permission to delete
+    if (
+      userRole !== UserRole.ADMIN &&
+      appointment.agent.id !== userId &&
+      appointment.property.agent.id !== userId
+    ) {
+      throw new ForbiddenException(
+        'You do not have permission to delete this appointment',
+      );
+    }
+
     await this.appointmentsRepository.remove(appointment);
   }
 }

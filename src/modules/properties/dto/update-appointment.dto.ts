@@ -5,6 +5,9 @@ import {
   IsPhoneNumber,
   IsEnum,
   IsDateString,
+  IsNumber,
+  Min,
+  Max,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import {
@@ -17,6 +20,17 @@ export class UpdateAppointmentDto {
   @IsOptional()
   @IsDateString()
   appointmentDate?: string;
+
+  @ApiProperty({
+    example: 60,
+    description: 'Duration in minutes',
+    required: false,
+  })
+  @IsNumber()
+  @Min(15)
+  @Max(240)
+  @IsOptional()
+  durationMinutes?: number;
 
   @ApiProperty({ example: 'John Doe', required: false })
   @IsOptional()

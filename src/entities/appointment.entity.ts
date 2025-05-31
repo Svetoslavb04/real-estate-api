@@ -27,6 +27,9 @@ export class Appointment {
   @Column({ type: 'datetime' })
   appointmentDate: Date;
 
+  @Column({ type: 'int', default: 60 })
+  durationMinutes: number;
+
   @Column({ length: 100 })
   clientName: string;
 
